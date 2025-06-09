@@ -22,7 +22,10 @@ const auth = (req, res, next) => {
 
     try {
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      const secret = process.env.JWT_SECRET || 'your-secret-key';
+      console.log('Using secret key:', secret.substring(0, 3) + '...');
+      
+      const decoded = jwt.verify(token, secret);
       console.log('Token verified successfully:', decoded);
 
       // Add user from payload
@@ -30,7 +33,13 @@ const auth = (req, res, next) => {
       next();
     } catch (error) {
       console.error('Token verification failed:', error.message);
-      res.status(401).json({ message: 'Token is not valid' });
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token has expired' });
+      }
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      res.status(401).json({ message: 'Token verification failed' });
     }
   } catch (error) {
     console.error('Auth middleware error:', error);
