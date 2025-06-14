@@ -6,12 +6,19 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, 'config/.env') });
 
 // Create Express app
 const app = express();
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // CORS configuration
 const allowedOrigins = [
@@ -40,6 +47,11 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Gallery = require('../models/Gallery');
 const auth = require('../middleware/auth');
+const upload = require('../config/upload');
 
 // @route   GET api/gallery/images
 // @desc    Get all images
@@ -98,14 +99,21 @@ router.get('/:id', async (req, res) => {
 // @route   POST api/gallery/images
 // @desc    Create an image item
 // @access  Private
-router.post('/images', auth, async (req, res) => {
+router.post('/images', auth, upload.single('file'), async (req, res) => {
   try {
-    console.log('Received new image request:', req.body);
-    const { title, description, imageUrl } = req.body;
+    console.log('Received new image request body:', req.body);
+    console.log('Received file:', req.file);
+    
+    const { title, description } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : req.body.imageUrl;
 
     // Validate required fields
     if (!title || !description || !imageUrl) {
-      console.error('Missing required fields');
+      console.error('Missing required fields:', {
+        title: !!title,
+        description: !!description,
+        imageUrl: !!imageUrl
+      });
       return res.status(400).json({ 
         message: 'All fields are required',
         received: { title, description, imageUrl }
@@ -119,9 +127,7 @@ router.post('/images', auth, async (req, res) => {
       type: 'image'
     });
 
-    console.log('Created new image:', newItem);
     const savedItem = await newItem.save();
-    console.log('Saved image:', savedItem);
     res.status(201).json(savedItem);
   } catch (error) {
     console.error('Error in POST /api/gallery/images:', error);
@@ -132,10 +138,11 @@ router.post('/images', auth, async (req, res) => {
 // @route   POST api/gallery/videos
 // @desc    Create a video item
 // @access  Private
-router.post('/videos', auth, async (req, res) => {
+router.post('/videos', auth, upload.single('file'), async (req, res) => {
   try {
     console.log('Received new video request:', req.body);
-    const { title, description, videoUrl } = req.body;
+    const { title, description } = req.body;
+    const videoUrl = req.file ? `/uploads/${req.file.filename}` : req.body.videoUrl;
 
     // Validate required fields
     if (!title || !description || !videoUrl) {
@@ -153,9 +160,7 @@ router.post('/videos', auth, async (req, res) => {
       type: 'video'
     });
 
-    console.log('Created new video:', newItem);
     const savedItem = await newItem.save();
-    console.log('Saved video:', savedItem);
     res.status(201).json(savedItem);
   } catch (error) {
     console.error('Error in POST /api/gallery/videos:', error);
@@ -166,15 +171,16 @@ router.post('/videos', auth, async (req, res) => {
 // @route   POST api/gallery/events
 // @desc    Create an event item
 // @access  Private
-router.post('/events', auth, async (req, res) => {
+router.post('/events', auth, upload.single('file'), async (req, res) => {
   try {
-    console.log('Received new event request:', req.body);
-    const { title, description, imageUrl } = req.body;
+    console.log('Received new event request body:', req.body);
+    console.log('Received file:', req.file);
 
-    // Validate required fields
+    const { title, description } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : req.body.imageUrl;
+
     if (!title || !description || !imageUrl) {
-      console.error('Missing required fields');
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'All fields are required',
         received: { title, description, imageUrl }
       });
@@ -187,12 +193,9 @@ router.post('/events', auth, async (req, res) => {
       type: 'event'
     });
 
-    console.log('Created new event:', newItem);
     const savedItem = await newItem.save();
-    console.log('Saved event:', savedItem);
     res.status(201).json(savedItem);
   } catch (error) {
-    console.error('Error in POST /api/gallery/events:', error);
     res.status(400).json({ message: error.message });
   }
 });
