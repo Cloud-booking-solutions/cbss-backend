@@ -11,7 +11,7 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
+// File filter for images and videos
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
     cb(null, true);
@@ -20,12 +20,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create multer upload instance
+// Multer instance for image/video uploads (200MB limit)
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 200 * 1024 * 1024 // 200MB limit
+    fileSize: 200 * 1024 * 1024 // 200MB
   }
 });
 
@@ -43,9 +43,12 @@ const resumeUpload = multer({
   storage: storage,
   fileFilter: resumeFileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024 // 2MB limit
+    fileSize: 2 * 1024 * 1024 // 2MB
   }
 });
 
-module.exports = upload;
-module.exports.resumeUpload = resumeUpload; 
+// ✅ Correct unified export
+module.exports = {
+  upload,
+  resumeUpload
+};
