@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Service = require('../models/Service');
 const auth = require('../middleware/auth');
+const upload = require('../config/upload');
 
 // @route   GET api/service
 // @desc    Get all services
@@ -40,18 +41,28 @@ router.get('/:id', async (req, res) => {
 // @route   POST api/service
 // @desc    Create a service
 // @access  Private
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, upload.single('file'), async (req, res) => {
   try {
-    const { title, description, features, image } = req.body;
-    
-    // Create new service
+    const { title, description, category } = req.body;
+    let features = [];
+    if (req.body.features) {
+      if (typeof req.body.features === 'string') {
+        features = JSON.parse(req.body.features);
+      } else {
+        features = req.body.features;
+      }
+    }
+    let image = req.body.image;
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    }
     const newService = new Service({
       title,
       description,
       features,
-      image
+      image,
+      category
     });
-    
     const service = await newService.save();
     res.json(service);
   } catch (err) {
@@ -63,21 +74,30 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/service/:id
 // @desc    Update a service
 // @access  Private
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, upload.single('file'), async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
-    
     if (!service) {
       return res.status(404).json({ msg: 'Service not found' });
     }
-    
-    // Update fields
-    const { title, description, features, image } = req.body;
+    const { title, description, category } = req.body;
+    let features = [];
+    if (req.body.features) {
+      if (typeof req.body.features === 'string') {
+        features = JSON.parse(req.body.features);
+      } else {
+        features = req.body.features;
+      }
+    }
+    let image = req.body.image;
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    }
     if (title) service.title = title;
     if (description) service.description = description;
     if (features) service.features = features;
     if (image) service.image = image;
-    
+    if (category) service.category = category;
     await service.save();
     res.json(service);
   } catch (err) {
@@ -94,13 +114,11 @@ router.put('/:id', auth, async (req, res) => {
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
-    
-    if (!service) {
-      return res.status(404).json({ msg: 'Service not found' });
-    }
-    
-    await service.remove();
+    const service = await Service.findByIdAndDelete(req.params.id);
+if (!service) {
+  return res.status(404).json({ message: 'Service not found' });
+}
+// No need to call remove(), it's already deleted
     res.json({ msg: 'Service removed' });
   } catch (err) {
     console.error(err.message);

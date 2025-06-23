@@ -107,21 +107,20 @@ router.post('/logout', (req, res) => {
 // @route   GET api/auth/verify
 // @desc    Verify JWT token
 // @access  Private
-router.get('/verify', auth, (req, res) => {
+router.get('/verify', async (req, res) => {
   try {
-    // If we get here, it means the auth middleware passed
-    // and the token is valid
-    console.log('Token verified successfully for user:', req.user);
-    res.json({ 
-      valid: true,
-      user: {
-        id: req.user.id,
-        username: req.user.username
-      }
-    });
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    res.json({ valid: true, user: decoded });
   } catch (error) {
-    console.error('Error in verify endpoint:', error);
-    res.status(401).json({ message: 'Token verification failed' });
+    console.error('Token verification error:', error);
+    res.status(401).json({ message: 'Invalid token' });
   }
 });
 

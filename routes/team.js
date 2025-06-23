@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../models/Team');
 const auth = require('../middleware/auth');
+const upload = require('../config/upload');
 
 // @route   GET api/team
 // @desc    Get all team members
@@ -40,10 +41,13 @@ router.get('/:id', async (req, res) => {
 // @route   POST api/team
 // @desc    Create a team member
 // @access  Private
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, upload.single('file'), async (req, res) => {
   try {
-    const { name, role, image, type } = req.body;
-    
+    const { name, role, type } = req.body;
+    let image = req.body.image;
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    }
     // Create new team member
     const newTeamMember = new Team({
       name,
@@ -51,7 +55,6 @@ router.post('/', auth, async (req, res) => {
       image,
       type
     });
-    
     const teamMember = await newTeamMember.save();
     res.json(teamMember);
   } catch (err) {
@@ -63,21 +66,22 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/team/:id
 // @desc    Update a team member
 // @access  Private
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, upload.single('file'), async (req, res) => {
   try {
     const teamMember = await Team.findById(req.params.id);
-    
     if (!teamMember) {
       return res.status(404).json({ msg: 'Team member not found' });
     }
-    
     // Update fields
-    const { name, role, image, type } = req.body;
+    const { name, role, type } = req.body;
+    let image = req.body.image;
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    }
     if (name) teamMember.name = name;
     if (role) teamMember.role = role;
     if (image) teamMember.image = image;
     if (type) teamMember.type = type;
-    
     await teamMember.save();
     res.json(teamMember);
   } catch (err) {

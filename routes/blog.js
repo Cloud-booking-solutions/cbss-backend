@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Blog = require('../models/Blog');
 const authMiddleware = require('../middleware/auth');
+const upload = require('../config/upload');
 
 // @route   GET api/blog
 // @desc    Get all blogs
@@ -52,15 +53,19 @@ router.get('/:id', async (req, res) => {
 // @route   POST api/blog
 // @desc    Create a blog
 // @access  Private
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
   try {
-    const { title, excerpt, content, image } = req.body;
+    const { title, excerpt, content, status } = req.body;
+    let image = req.body.image;
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    }
     const newPost = new Blog({
       title,
       excerpt,
       content,
       image,
-      status: 'Draft'
+      status: status || 'Draft'
     });
     await newPost.save();
     res.status(201).json(newPost);
@@ -73,11 +78,15 @@ router.post('/', authMiddleware, async (req, res) => {
 // @route   PUT api/blog/:id
 // @desc    Update a blog
 // @access  Private
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, upload.single('file'), async (req, res) => {
   try {
+    let updateData = { ...req.body };
+    if (req.file) {
+      updateData.image = `/uploads/${req.file.filename}`;
+    }
     const updatedPost = await Blog.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true }
     );
     if (!updatedPost) {
