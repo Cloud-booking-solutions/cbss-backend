@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Service = require('../models/Service');
 const auth = require('../middleware/auth');
-const upload = require('../config/upload');
+const { upload } = require('../config/upload');
 
 // @route   GET api/service
 // @desc    Get all services

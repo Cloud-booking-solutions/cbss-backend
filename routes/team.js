@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../models/Team');
 const auth = require('../middleware/auth');
-const upload = require('../config/upload');
+const { upload } = require('../config/upload');
 
 // @route   GET api/team
 // @desc    Get all team members

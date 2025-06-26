@@ -105,6 +105,7 @@ const galleryRoutes = require('./routes/gallery');
 const serviceRoutes = require('./routes/service');
 const careerRoutes = require('./routes/career');
 const authRoutes = require('./routes/auth');
+const contactRoutes = require('./routes/contact');
 
 // Use routes
 app.use('/api/team', teamRoutes);
@@ -113,6 +114,7 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/service', serviceRoutes);
 app.use('/api/career', careerRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {

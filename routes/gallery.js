@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Gallery = require('../models/Gallery');
 const auth = require('../middleware/auth');
-const upload = require('../config/upload');
+const { upload } = require('../config/upload');
 
 // @route   GET api/gallery/images
 // @desc    Get all images
